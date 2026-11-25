@@ -1,0 +1,65 @@
+name: Frozen VulnGym static baselines
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Pipeline check or all frozen snapshots
+        type: choice
+        required: true
+        default: smoke
+        options:
+          - smoke
+          - full
+permissions:
+  contents: read
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: matrix
+        env:
+          RUN_SCOPE: ${{ inputs.scope }}
+        shell: python
+        run: |
+          import json, os
+          tasks = json.load(open('tasks.json'))
+          if os.environ['RUN_SCOPE'] == 'smoke':
+              tasks = [task for task in tasks if task['snapshot_id'] == 's_c9313122c553']
+              assert len(tasks) == 1
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+              stream.write('matrix=' + json.dumps({'include': tasks}, separators=(',', ':')) + '\n')
+  scan:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 200
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    name: ${{ matrix.snapshot_id }}
+    env:
+      SEMGREP_SEND_METRICS: 'off'
+      SEMGREP_ENABLE_VERSION_CHECK: '0'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install fixed public tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 2 --output codeql.zip https://github.com/github/codeql-cli-binaries/releases/download/v2.27.5/codeql-linux64.zip
+          echo '9026c01f4aa4ccd66fe734c8fe037e7a03aecfe151f681760922c304dda14208  codeql.zip' | sha256sum --check
+          unzip -q codeql.zip -d tools
+          echo "$GITHUB_WORKSPACE/tools/codeql" >> "$GITHUB_PATH"
+          python -m pip install --disable-pip-version-check 'semgrep==1.186.0' 'bandit==1.9.4'
+      - name: Download exact official query packs
+        run: codeql pack download codeql/python-queries@1.9.2 codeql/javascript-queries@2.5.2
+      - name: Read-only source analysis and log evidence export
+        run: python cloud_runner.py --snapshot '${{ matrix.snapshot_id }}'

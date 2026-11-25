@@ -1,0 +1,23 @@
+{
+  "semgrep_rules": [
+    {
+      "file": "semgrep_default.yaml",
+      "url": "https://semgrep.dev/c/p/default",
+      "sha256": "9c76333af7c9555a45560d8398cf5fa03432d8f86ca4e458eac3686599fd8f1b"
+    },
+    {
+      "file": "semgrep_security_audit.yaml",
+      "url": "https://semgrep.dev/c/p/security-audit",
+      "sha256": "6d2f9a77b0372395072aa859ffd47f57b5851e1511da72a6c1b7ff9898ee1313"
+    },
+    {
+      "file": "semgrep_owasp_top_ten.yaml",
+      "url": "https://semgrep.dev/c/p/owasp-top-ten",
+      "sha256": "983513761ad687c438843c13974af3694036898db19170dd50e838e42b017649"
+    }
+  ],
+  "codeql_cli": "2.27.5",
+  "python_queries": "1.9.2",
+  "javascript_queries": "2.5.2",
+  "published": false
+}
