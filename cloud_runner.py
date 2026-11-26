@@ -1,6 +1,7 @@
 """Public-source-only Linux baseline worker; outputs compressed evidence to job logs."""
 from pathlib import Path,PurePosixPath
 import argparse,base64,datetime,gzip,hashlib,json,os,shutil,subprocess,tarfile,time,urllib.request
+from rule_fingerprint import fingerprint
 
 ROOT=Path(__file__).resolve().parent
 def dump(p,v):p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(v,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
@@ -61,8 +62,12 @@ def main():
         files,skipped=extract(archive,source);dump(out/'source_manifest.json',{'files':files,'skipped':skipped})
         suffixes={Path(f['file']).suffix for f in files};rules=work/'rules';rules.mkdir()
         lock=json.loads((ROOT/'tools_lock.json').read_text());configs=[]
+        receipts=[]
         for rule in lock['semgrep_rules']:
-            p=rules/rule['file'];receipt=fetch(rule['url'],p,20000000);assert receipt['sha256']==rule['sha256'],'Registry config changed: do not mix rule versions'
+            p=rules/rule['file'];receipt=fetch(rule['url'],p,20000000)
+            receipt['file']=rule['file'];receipt['semantic_fingerprint']=fingerprint(p.read_text(encoding='utf-8'));receipts.append(receipt)
+            dump(out/'rule_receipts.json',receipts)
+            assert receipt['semantic_fingerprint']==rule['semantic_fingerprint'],'Rule matching configuration changed: do not mix configurations'
             configs+=['--config',str(p)]
         command(['semgrep','scan',str(source),'--json','--output='+str(out/'semgrep.json'),'--metrics=off','--disable-version-check','--no-git-ignore','--jobs=2','--timeout=10','--max-target-bytes=1000000','--dataflow-traces',*configs],'semgrep',out)
         if '.py' in suffixes:command(['bandit','-r',str(source),'-f','json','-o',str(out/'bandit.json'),'-q'],'bandit',out,ok=(0,1))
@@ -88,5 +93,6 @@ def main():
     print('BASELINE_EVIDENCE_BEGIN',args.snapshot,hashlib.sha256(payload).hexdigest(),len(payload),flush=True)
     for start in range(0,len(encoded),3000):print('BASELINE_EVIDENCE_CHUNK '+encoded[start:start+3000],flush=True)
     print('BASELINE_EVIDENCE_END',args.snapshot,flush=True)
+    if summary['state']!='execution_attempts_finished_pending_task_support_and_mechanism_review':raise SystemExit(2)
 
 if __name__=='__main__':main()

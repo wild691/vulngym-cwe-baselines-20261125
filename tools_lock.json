@@ -3,21 +3,38 @@
     {
       "file": "semgrep_default.yaml",
       "url": "https://semgrep.dev/c/p/default",
-      "sha256": "9c76333af7c9555a45560d8398cf5fa03432d8f86ca4e458eac3686599fd8f1b"
+      "semantic_fingerprint": {
+        "algorithm": "full_rule_except_metadata_sorted_v1",
+        "rules": 1074,
+        "sha256": "c4e9b25cbfa2ebeb672cac35382df8217187614c98da960e21a6a0a1e0531910"
+      },
+      "original_raw_sha256": "9c76333af7c9555a45560d8398cf5fa03432d8f86ca4e458eac3686599fd8f1b"
     },
     {
       "file": "semgrep_security_audit.yaml",
       "url": "https://semgrep.dev/c/p/security-audit",
-      "sha256": "6d2f9a77b0372395072aa859ffd47f57b5851e1511da72a6c1b7ff9898ee1313"
+      "semantic_fingerprint": {
+        "algorithm": "full_rule_except_metadata_sorted_v1",
+        "rules": 225,
+        "sha256": "35e0fc3025d8ef331c921534b56533fc45340a29215385aaee50b2cae82c0a56"
+      },
+      "original_raw_sha256": "6d2f9a77b0372395072aa859ffd47f57b5851e1511da72a6c1b7ff9898ee1313"
     },
     {
       "file": "semgrep_owasp_top_ten.yaml",
       "url": "https://semgrep.dev/c/p/owasp-top-ten",
-      "sha256": "983513761ad687c438843c13974af3694036898db19170dd50e838e42b017649"
+      "semantic_fingerprint": {
+        "algorithm": "full_rule_except_metadata_sorted_v1",
+        "rules": 560,
+        "sha256": "9505fa9bd52b3837b82eaba055decec983f2b79e32ca0765d410f75dc9b30964"
+      },
+      "original_raw_sha256": "983513761ad687c438843c13974af3694036898db19170dd50e838e42b017649"
     }
   ],
   "codeql_cli": "2.27.5",
   "python_queries": "1.9.2",
   "javascript_queries": "2.5.2",
-  "published": false
+  "published": false,
+  "semantic_lock_reason": "Registry response metadata/ordering may vary; full matching fields including id/message/severity/options/version limits remain locked. Raw files/notices are preserved during use and are not redistributed.",
+  "cloud_rule_revision": "local-frozen-semantics"
 }
